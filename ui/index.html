@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/static/jquery-3.7.1/dist/jquery.min.js"></script>
+    <script src="/static/jquery-ui-1.13.2/dist/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="/static/jquery-ui-1.13.2/themes/base/all.css">
+
+    <script src="/static/jquery.json-viewer-1.5.0/json-viewer/jquery.json-viewer.js"></script>
+    <link href="/static/jquery.json-viewer-1.5.0/json-viewer/jquery.json-viewer.css" type="text/css" rel="stylesheet">
+
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.26.0/ace.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.26.0/mode-sh.min.js"></script>
+
+
+    <script type="module">
+        import { JSONEditor } from '/static/vanilla-jsoneditor-0.18.3/index.js'
+        window.JSONEditor = JSONEditor
+    </script>
+
+</head>
+
+<body>
+    <div class="flex h-screen">
+        <div id="sidebar" class="w-1/6"></div>
+        <div class="w-5/6">
+            <div id="header"></div>
+            <div id="main-content" class="w-full h-full bg-gray-100 p-6"> </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
+
+{{template "sidebar_js" . }} <!-- load js -->
+{{template "header_js" . }} <!-- load js -->
+
+
+
+<script>
+    const app_default = {
+        render() {
+            global.setMainContent("404")
+        }
+    }
+
+    global = {
+        header: NewHeader(),
+        sidebar: NewSidebar(),
+        router: {
+            default: "",
+            routes: {
+                "": app_default
+            },
+            registerRouteApp(url, app) {
+                this.routes[url] = app
+                if (app.getSidebar) {
+                    console.log("adding page, url=", app.getRegisterURL(), "sidebar=", app.getSidebar())
+                    global.sidebar.addPage(app.getSidebar())
+                }
+            },
+            getRouteApp(url) {
+                var app = this.routes[url]
+                if (app) {
+                    return app
+                }
+                console.log(`路由${url}未注册app, 将js模板添加进index.html`)
+                return app_default
+            },
+            setDefaultRoute(url) {
+                this.default = url
+            },
+            initRoute() {
+                var p = global.getCurrentRoute()
+                if (p != "") {
+                    global.render()
+                } else {
+                    window.location.hash = this.default
+                    console.log(`init default route: ${this.default}`)
+                }
+            }
+        },
+        setMainContent(v) {
+            $("#main-content").html(v)
+        },
+        render() {
+            this.sidebar.refresh()
+            var p = this.getCurrentRoute()
+            var app = this.router.getRouteApp(p)
+            window.app = app
+            app.render()
+
+            $(function () {
+                tippy('.tip')
+            })
+        },
+        getCurrentRoute() {
+            return window.location.hash.replace(/^#/, "")
+        }
+    }
+
+    window.onhashchange = e => global.render();
+
+    global.sidebar.mountOn("#sidebar")
+    global.header.mountOn("#header")
+</script>
+
+{{template "utiljs" . }} <!-- load js -->
+{{template "pages" . }} <!-- load js -->
+
+<script>
+    global.router.initRoute()
+</script>

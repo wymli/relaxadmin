@@ -1,0 +1,37 @@
+{{define "header_html" }}
+
+<div class="w-full bg-white">
+    <div class="border py-3 px-6">
+        <div class="flex justify-between">
+            <div id="header_env" class="ml-6 flex flex-1 gap-x-3">
+                <p>当前环境:</p>
+                <p class="text-green-600"> {{ .Env }} </p>
+            </div>
+
+            <div class="ml-2 flex">
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{{end}}
+
+{{define "header_js"}}
+
+<script>
+    function NewHeader() {
+        return {
+            init() {
+            },
+            mountOn(selector) {
+                $(selector).html(`{{ template "header_html" . }}`)
+                this.init()
+            }
+        }
+    }
+
+</script>
+
+
+{{end}}
